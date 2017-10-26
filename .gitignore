@@ -1,0 +1,7 @@
+*.class
+syntaxtree/*.class
+regAlloc/*.class
+visitor/*.class
+*.jj
+*.jar
+
