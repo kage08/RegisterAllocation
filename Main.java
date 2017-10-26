@@ -1,3 +1,4 @@
+
 import syntaxtree.*;
 import visitor.*;
 
@@ -6,7 +7,10 @@ public class Main {
       try {
          Node root = new microIRParser(System.in).Goal();
          System.out.println("Program parsed successfully");
-         root.accept(new GJNoArguDepthFirst()); // Your assignment part is invoked here.
+        
+         UseDefConsTr udst = new UseDefConsTr();
+         root.accept(udst);
+         udst.prettyPrintInfo();
       }
       catch (ParseException e) {
          System.out.println(e.toString());
