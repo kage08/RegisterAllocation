@@ -96,13 +96,21 @@ public class UseDefConsTr extends DepthFirstVisitor{
         n.f1.accept(this);
         n.f2.accept(this);
         currFun.noArgs = Integer.parseInt(n.f2.f0.toString());
-        for(Integer i=0; i<currFun.noArgs; i++)
-            varMap.put(i, new Variables(i, currFun));
-        n.f3.accept(this);
-        
         currBloc = prevBloc = null;
         prevBloc = new Blocks();
+        currBloc = prevBloc;
+        
+        for(Integer i=0; i<currFun.noArgs; i++){
+            varMap.put(i, new Variables(i, currFun));
+            currTemp = i;
+            addDef();
+        }
+        currBloc = null;
         currFun.blocklist.add(prevBloc);
+
+        n.f3.accept(this);
+        
+        
 
         n.f4.accept(this);
 
@@ -280,9 +288,7 @@ public class UseDefConsTr extends DepthFirstVisitor{
     public void visit(HStoreStmt n) {
          n.f0.accept(this);
         n.f1.accept(this);
-        varMap.put(currTemp, new Variables(currTemp, currFun));
-        currFun.ranges.add(varMap.get(currTemp));
-        addDef();
+        addUse();
         n.f2.accept(this);
         n.f3.accept(this);
         addUse();
@@ -374,6 +380,14 @@ public class UseDefConsTr extends DepthFirstVisitor{
          System.out.println("For Function: "+fn.name);
          fn.printDefUse();
      }
+ }
+
+ public void getInOuts(){
+    for(FunInfo fn: FunList){
+        System.out.println("For Function: "+fn.name);
+        fn.getInsOuts();
+        fn.printInsOuts();
+    } 
  }
 
      

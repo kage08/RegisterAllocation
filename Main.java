@@ -11,6 +11,7 @@ public class Main {
          UseDefConsTr udst = new UseDefConsTr();
          root.accept(udst);
          udst.prettyPrintInfo();
+         udst.getInOuts();
       }
       catch (ParseException e) {
          System.out.println(e.toString());

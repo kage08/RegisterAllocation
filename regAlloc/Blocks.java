@@ -29,5 +29,17 @@ public class Blocks {
             System.out.print(" "+vr.name);
         }
     }
+
+    public void printInOut(){
+        System.out.print(" In: ");
+        for(Variables vr: livein){
+            System.out.print(" "+vr.name);
+        }
+        System.out.print(" Out: ");
+        for(Variables vr: liveout){
+            System.out.print(" "+vr.name);
+        } 
+    }
+    
     
 }
