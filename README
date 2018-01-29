@@ -1,0 +1,4 @@
+We do a block analysis and implement simple linear scan register allocation algorithm to microIR code to convert to miniRA format.
+
+regAlloc contains all data structures for variables, functions and blocks.
+Translator.java contains the translating program using parse tree.

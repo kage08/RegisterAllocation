@@ -11,6 +11,8 @@ import syntaxtree.*;
 
 public class UseDefConsTr extends DepthFirstVisitor{
 
+    int labelct;
+
 
     public ArrayList<FunInfo> FunList;
     FunInfo currFun;
@@ -27,6 +29,7 @@ public class UseDefConsTr extends DepthFirstVisitor{
 
 
     public UseDefConsTr(){
+        labelct = 1;
         FunList = new ArrayList<FunInfo>();
         currFun = null;
         prevBloc = null;
@@ -48,11 +51,13 @@ public class UseDefConsTr extends DepthFirstVisitor{
    public void visit(Goal n) {
     n.f0.accept(this);
     currFun = new FunInfo(n.f0.toString());
+    currFun.noArgs=0;
     currBloc = prevBloc = null;
     prevBloc = new Blocks();
     n.f1.accept(this);
     n.f2.accept(this);
     FunList.add(currFun);
+    satisfyReqs();
     currFun = null;
     currBloc = prevBloc = null;
     labelMap = null;
@@ -73,6 +78,8 @@ public class UseDefConsTr extends DepthFirstVisitor{
             isLabelStmt = true;
             Label lb = (Label)n.node;
             currLabel = lb.f0.toString();
+            currFun.labmap.put(currLabel, labelct);
+            labelct++;
 
         }
            
@@ -102,8 +109,10 @@ public class UseDefConsTr extends DepthFirstVisitor{
         
         for(Integer i=0; i<currFun.noArgs; i++){
             varMap.put(i, new Variables(i, currFun));
+            currFun.ranges.add(varMap.get(i));
+            currBloc.def.add(varMap.get(i));
             currTemp = i;
-            addDef();
+            
         }
         currBloc = null;
         currFun.blocklist.add(prevBloc);
@@ -127,14 +136,10 @@ public class UseDefConsTr extends DepthFirstVisitor{
      }
 
      void satisfyReqs(){
-         Iterator it = addRequests.entrySet().iterator();
-         Blocks t1, t2;
-         while(it.hasNext()){
-             HashMap.Entry pair = (HashMap.Entry)it.next();
-             t1 = (Blocks)pair.getKey();
-             t2 = labelMap.get((String)pair.getValue());
-             t1.succ.add(t2);
-             t2.pred.add(t1);
+         for(Blocks blk: addRequests.keySet()){
+             Blocks target = labelMap.get(addRequests.get(blk));
+             blk.succ.add(target);
+             target.pred.add(blk);
          }
      }
       /**
@@ -171,12 +176,15 @@ public class UseDefConsTr extends DepthFirstVisitor{
     */
      public void visit(Stmt n) {
          currBloc = new Blocks();
-         if(defsucc)
+         if(defsucc){
+
+            prevBloc.succ.add(currBloc);
             currBloc.pred.add(prevBloc);
-         else
+        }
+        else{
             defsucc = true;
-
-
+        }
+         
         n.f0.accept(this);
         if(isLabelStmt){
             labelMap.put(currLabel, currBloc);
@@ -184,8 +192,7 @@ public class UseDefConsTr extends DepthFirstVisitor{
         }
         currFun.blocklist.add(currBloc);
 
-        if(defsucc)
-            prevBloc.succ.add(currBloc);
+        
 
         prevBloc = currBloc;
         currBloc = null;
@@ -233,10 +240,11 @@ public class UseDefConsTr extends DepthFirstVisitor{
         String goLab = n.f2.f0.toString();
         if(labelMap.containsKey(goLab)){
             currBloc.succ.add(labelMap.get(goLab));
+            labelMap.get(goLab).pred.add(currBloc);
         }
         else{
             addRequests.put(currBloc, goLab);
-        }
+         }
 
         n.f2.accept(this);
      }
@@ -251,6 +259,7 @@ public class UseDefConsTr extends DepthFirstVisitor{
     String goLab = n.f1.f0.toString();
     if(labelMap.containsKey(goLab)){
         currBloc.succ.add(labelMap.get(goLab));
+        labelMap.get(goLab).pred.add(currBloc);
     }
     else{
         addRequests.put(currBloc, goLab);
@@ -276,6 +285,7 @@ public class UseDefConsTr extends DepthFirstVisitor{
     else{
         varMap.put(currTemp, new Variables(currTemp, currFun));
         currBloc.def.add(varMap.get(currTemp));
+        currFun.ranges.add(varMap.get(currTemp));
     }
  }
 
@@ -303,8 +313,8 @@ public class UseDefConsTr extends DepthFirstVisitor{
    public void visit(HLoadStmt n) {
     n.f0.accept(this);
     n.f1.accept(this);
-    varMap.put(currTemp, new Variables(currTemp, currFun));
-    currFun.ranges.add(varMap.get(currTemp));
+    
+    
     addDef();
     n.f2.accept(this);
     addUse();
@@ -319,8 +329,7 @@ public class UseDefConsTr extends DepthFirstVisitor{
     public void visit(MoveStmt n) {
         n.f0.accept(this);
         n.f1.accept(this);
-        varMap.put(currTemp, new Variables(currTemp, currFun));
-        currFun.ranges.add(varMap.get(currTemp));
+        
         addDef();
         n.f2.accept(this);
      }
@@ -384,9 +393,12 @@ public class UseDefConsTr extends DepthFirstVisitor{
 
  public void getInOuts(){
     for(FunInfo fn: FunList){
-        System.out.println("For Function: "+fn.name);
+        //System.out.println("For Function: "+fn.name);
         fn.getInsOuts();
-        fn.printInsOuts();
+        //fn.printInsOuts();
+        fn.doLinScan();
+        //fn.printLinScan();
+        //System.out.println();
     } 
  }
 

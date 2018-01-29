@@ -1,0 +1,29 @@
+1) Have you tarred + gzipped the file as CSXXXXXX.P5.tar.gz (your 8-digit roll number) ?
+
+2) Does your tar file expand (by using the command tar xzf) to the base directory named CSXXXXXX (your 8-digit roll number) ?
+
+3) Have you removed all the class files and jar files from your tar ball?
+
+4) Does your base folder contain P5.java that can be compiled using javac?
+
+5) Does your P5.java take input from the standard input (for usage of redirection) ?
+
+6) Does your P5.java write output to the standard output (for usage of redirection) ?
+
+7) Have you removed all the debugging messages that your program may output to the standard output?
+
+8) Is (some part of) the assignment plagiarized?
+
+8.1) If yes, Plagiarism Declarations (if any):
+
+9) Is this checklist present in your folder CSXXXXXX (your 8-digit roll number) ?
+
+10) Is this checklist named "ChecklistP5.txt" ?
+
+Any other comments:
+
+regAlloc folder contains Structures for Basic blocks, Variable ranges and Procedure information and implementation of Linear Scan. UseDefConsTr.java constructs deft and use.
+
+The CFG is constructed in FunInfo of individual procedure. Translator.java finally converts microRA code to miniRA using registers assigned for each variable by Linear Scan.
+
+Thankyou!

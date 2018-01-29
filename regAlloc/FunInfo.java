@@ -1,15 +1,18 @@
 package regAlloc;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 
 public class FunInfo{
     public String name;
     public ArrayList<Blocks> blocklist;
     public ArrayList<Variables> ranges;
+    public HashMap<Integer, Variables> rangemap;
     public boolean doescall;
-    public int noArgs, toSpill, maxCallArgs, stkSlots;
+    public int noArgs, toSpill, maxCallArgs, stkSlots, sregused;
+    public ArrayList<Variables> spilled;
+    public TreeSet<String> regUsed;
+    public HashMap<String, Integer> labmap;
 
     public FunInfo(String nam){
         name = nam;
@@ -17,12 +20,26 @@ public class FunInfo{
         doescall=false;
         noArgs = toSpill = maxCallArgs = stkSlots = 0; 
         ranges = new ArrayList<Variables>();
+        spilled = new ArrayList<Variables>();
+        regUsed = new TreeSet<String>();
+        labmap = new HashMap<String, Integer>();
+        rangemap = new HashMap<Integer, Variables>();
     }
 
     public void printDefUse(){
         for(int i=0; i<blocklist.size(); i++){
             System.out.print("Block: "+ i+ " ");
             blocklist.get(i).printUseDef();
+            System.out.println();
+            System.out.print("Pred: ");
+            for(Blocks bk: blocklist.get(i).pred){
+                System.out.print(blocklist.indexOf(bk)+" ");
+            }
+            System.out.println();
+            System.out.print("Succ: ");
+            for(Blocks bk: blocklist.get(i).succ){
+                System.out.print(blocklist.indexOf(bk)+" ");
+            }
             System.out.println();
         }
         for(int i=0; i<ranges.size(); i++){
@@ -35,10 +52,11 @@ public class FunInfo{
         for(int i=0; i<blocklist.size(); i++){
             System.out.print("Block: "+ i+ " ");
             blocklist.get(i).printInOut();
+            
             System.out.println();
         }
         for(int i=0; i<ranges.size(); i++){
-            System.out.print(" "+ranges.get(i).name);
+            System.out.println(" "+ranges.get(i).name+" "+ranges.get(i).start+" "+ranges.get(i).end);
         }
         System.out.println("\n\n");
     }
@@ -48,11 +66,14 @@ public class FunInfo{
         Scanner sc = new Scanner(System.in);
         
         TreeSet<Variables> out2 = new TreeSet<Variables>();
-        while(changed){
+        do{
             changed = false;
             for(int i=blocklist.size()-1; i>=0; i--){
                 Blocks currB = blocklist.get(i);
+
+                
                 out2.clear();
+
                 for(Blocks succB: currB.succ){
                     out2.addAll(succB.livein);
                 }
@@ -65,8 +86,8 @@ public class FunInfo{
                     }
                     
                 }
-                else{
-                    TreeSet<Variables> in2 = currB.livein;
+
+                TreeSet<Variables> in2 = currB.livein;
                 
                     in2.clear();
                     
@@ -77,11 +98,11 @@ public class FunInfo{
                         if(!currB.def.contains(outnv))
                             in2.add(outnv);
                     }
-                }
+                
             }
             
 
-        }
+        }while(changed);
         updateRanges();
     }
 
@@ -102,9 +123,29 @@ public class FunInfo{
                 v.end = blocklist.size()-1;
             v.updatesize();
         }
-        
+    }
 
+    public void doLinScan(){
+        new LinearScan(this).lscan();
+        stkSlots = Math.min(regUsed.size(),8) + toSpill+1;
+        stkSlots += (noArgs>4)?(noArgs-4):0;
+        sregused = Math.min(regUsed.size(), 8);
+        for(Variables v: ranges){
+            rangemap.put(v.name, v);
+        }
         
+    }
+
+    public void printLinScan(){
+        for(Variables v: ranges){
+            System.out.print("Var: "+ v.name);
+            if(v.spilled){
+                System.out.println("Spilled");
+            }
+            else{
+                System.out.println("Reg: "+(char)v.regtype+" "+v.regnum);
+            }
+        }
     }
 
 

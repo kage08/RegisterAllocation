@@ -11,13 +11,17 @@ public class Variables implements Comparable<Variables>{
     public int name;
     public FunInfo proc;
     public int regnum;
-    public char regtype; 
+    public char regtype;
+    public boolean spilled; 
+    public int spillnumber;
 
     public Variables(int nm, FunInfo pr){
         name = nm;
         proc = pr;
         start = Integer.MAX_VALUE;
         end = Integer.MIN_VALUE;
+        spilled = false;
+        spillnumber = 0;
     }
 
     public int compareTo (Variables other){
@@ -36,20 +40,11 @@ public class Variables implements Comparable<Variables>{
     public void updatesize(){
         size = end - start + 1;
     }
-
-    public static Comparator<Variables> endComp(){
-        return new Comparator<Variables>(){
-            public int compare(Variables one, Variables two){
-                return one.end - two.end;
-            }
-        };
+    public String regName(){
+        String ans = Character.toString(regtype);
+        ans = ans+Integer.toString(regnum);
+        return ans;
     }
 
-    public static Comparator<Variables> startComp(){
-        return new Comparator<Variables>(){
-            public int compare(Variables one, Variables two){
-                return one.start - two.start;
-            }
-        };
-    }
+    
 }
